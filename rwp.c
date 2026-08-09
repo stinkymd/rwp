@@ -49,9 +49,6 @@ random_below(size_t n)
 	uint32_t r;
 	uint32_t limit;
 
-	if (n == 0)
-		die("invalid random range");
-
 	limit = UINT32_MAX - (UINT32_MAX % n);
 
 	do {
@@ -129,8 +126,6 @@ main(int argc, char *argv[])
 		die("cannot open /dev/urandom");
 
 	slot = calloc(COUNT, sizeof(*slot));
-	if (!slot)
-		die("out of memory");
 
 	/*
 	 * Single-pass reservoir sampling: keeps COUNT words uniformly
@@ -148,15 +143,11 @@ main(int argc, char *argv[])
 
 		if (nvalid < COUNT) {
 			slot[nvalid] = strdup(line);
-			if (!slot[nvalid])
-				die("out of memory");
 		} else {
 			j = random_below(nvalid + 1);
 			if (j < COUNT) {
 				free(slot[j]);
 				slot[j] = strdup(line);
-				if (!slot[j])
-					die("out of memory");
 			}
 		}
 
@@ -167,9 +158,6 @@ main(int argc, char *argv[])
 
 	if (fp != stdin)
 		fclose(fp);
-
-	if (nvalid == 0)
-		die("no words matched filter");
 
 	if (nvalid < COUNT)
 		die("not enough words in list");

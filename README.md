@@ -88,5 +88,5 @@ yields:
 Exit status
 -----------
 0 - success; the passphrase was printed.
-1 - any error: unreadable wordlist, `/dev/urandom` failure, out of
-    memory, or not enough matching words.
+1 - any error: unreadable wordlist, `/dev/urandom` failure, or not enough
+    matching words.
