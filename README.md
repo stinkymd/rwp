@@ -1,98 +1,97 @@
-# rwp
+rwp - random word password generator
+====================================
+rwp is a suckless-style, C99/POSIX program that reads a wordlist and prints
+a passphrase of `COUNT` random words joined by a separator, suitable for use
+as a password. It has no dependencies beyond libc and `/dev/urandom`.
 
-Random Word Password — Suckless-style C / UNIX / POSIX / KISS.
+Data goes to stdout, diagnostics to stderr; there are no prompts, flags, or
+interactive behavior. All tuning happens at compile time in `config.h`.
+Selection uses single-pass reservoir sampling, so memory use is bounded
+regardless of wordlist size. Compose freely with other tools:
 
-Reads a wordlist, filters it, and prints a passphrase of `COUNT` randomly chosen
-words joined by a separator. Data goes to stdout, diagnostics to stderr; there
-are no prompts, flags, or interactive behavior. All tuning happens at compile
-time in `config.h`. Selection uses single-pass reservoir sampling, so memory
-use is bounded regardless of wordlist size.
+    $ shuf /usr/share/dict/words | head -n 5000 | rwp -
 
-Compose freely with other tools:
 
-```
-$ shuf /usr/share/dict/words | head -n 5000 | rwp -
-```
+Requirements
+------------
+In order to build rwp you need a C99 compiler (cc, gcc or clang) and a
+POSIX system with `/dev/urandom`.
 
-## Usage
 
-```
+Installation
+------------
+Edit `config.h` to match your local setup and afterwards enter the
+following command to build and install rwp (if necessary as root):
+
+    sudo make clean install
+
+To uninstall:
+
+    sudo make uninstall
+
+`PREFIX` defaults to `/usr/local` and can be overridden; installation
+honors `DESTDIR` for packaging:
+
+    make PREFIX=$HOME/.local install
+
+
+Running
+-------
 usage: rwp [wordlist|-]
-```
 
-- `wordlist` — read words from this file (default: `WORDLIST` in `config.h`).
-- `-` — read words from standard input, enabling composition.
+    wordlist    read words from this file (default: `WORDLIST` in config.h)
+    -           read words from standard input, enabling composition
 
-### Examples
+Examples:
 
-```
-$ rwp
-asap risk webs toga twat
+    $ rwp
+    asap risk webs toga twat
 
-$ rwp | xclip -selection clipboard
+    $ rwp | xclip -selection clipboard
 
-$ rwp /usr/share/dict/words
-flaw pays nevi kelp fuck
+    $ rwp /usr/share/dict/words
+    flaw pays nevi kelp fuck
 
-```
-
-Words are filtered to alphabetic characters only and case-transformed per the
-`CASE` setting. Lines of any length are handled (`getline`), so there is no
+Words are accepted per the config.h settings: the length range
+(`MIN_LEN`/`MAX_LEN`) and, when `ONLY_ALPHA` is enabled, alphabetic
+characters only. Each word is then case-transformed per the `CASE`
+setting. Lines of any length are handled (`getline`), so there is no
 fixed word-size cap.
 
-## Exit status
 
-- `0` — success; the passphrase was printed.
-- `1` — any error: unreadable wordlist, `/dev/urandom` failure, out of memory,
-  or not enough matching words.
+Configuration
+-------------
+The configuration of rwp is done by creating a custom `config.h` and
+(re)compiling the source code, which keeps it fast, secure and simple.
 
-## Build and install
+    WORDLIST    default wordlist path (e.g. /usr/share/dict/words)
+    MIN_LEN     minimum accepted word length
+    MAX_LEN     maximum accepted word length
+    ONLY_ALPHA  1 accepts only alphabetic words, 0 accepts any word
+    COUNT       number of words in the passphrase
+    SEPARATOR   string placed between words
+    CASE        case transformation per word
+    PREFIX      string printed before the first word
+    SUFFIX      string printed after the last word
 
-```
-sudo make clean install
+For example, to emit a JSON document:
 
-sudo make uninstall
-```
+    #define SEPARATOR "\",\""
+    #define PREFIX "{\"password\":\""
+    #define SUFFIX "\"}"
 
-`PREFIX` defaults to `/usr/local`; override with:
+yields:
 
-```
-make PREFIX=$HOME/.local install
-```
+    {"password":"house","tiger","dumb","leafs"}
 
-Installation honors `DESTDIR` for packaging.
 
-## Configuration
+Exit status
+-----------
+0 - success; the passphrase was printed.
+1 - any error: unreadable wordlist, `/dev/urandom` failure, out of
+    memory, or not enough matching words.
 
-Compile-time defaults live in `config.h`:
 
-- `WORDLIST` — default wordlist path (e.g. `/usr/share/dict/words`).
-- `MIN_LEN` / `MAX_LEN` — accepted word length range.
-- `COUNT` — number of words in the passphrase.
-- `SEPARATOR` — string placed between words.
-- `CASE_BEHAVIOR` — case transformation per word.
-- `PREFIX` — string printed before the first word.
-- `SUFFIX` — string printed after the last word.
-
-### Example: JSON output
-
-```
-#define SEPARATOR "\",\""
-#define PREFIX "{\"password\":\""
-#define SUFFIX "\"}"
-```
-
-Output:
-```
-{"password":"house","tiger","dumb","leafs"}
-```
-
-## Dependencies
-
-- POSIX system with `/dev/urandom`
-- C compiler (cc/gcc/clang)
-- Standard C library (`libc`)
-
-## License
-
+License
+-------
 MIT/X Consortium License

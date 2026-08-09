@@ -79,9 +79,11 @@ valid_word(const char *word)
 	if (len < MIN_LEN || len > MAX_LEN)
 		return 0;
 
+#if ONLY_ALPHA
 	for (p = (const unsigned char *)word; *p; p++)
 		if (!isalpha(*p))
 			return 0;
+#endif
 
 	return 1;
 }
