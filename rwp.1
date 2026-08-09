@@ -1,0 +1,80 @@
+.TH RWP 1 "random word password"
+.SH NAME
+rwp \- random word password
+.SH SYNOPSIS
+.B rwp
+.RB [ \fIwordlist\fP | \- ]
+.SH DESCRIPTION
+.B rwp
+reads a wordlist and prints a passphrase of
+.I COUNT
+random words, joined by
+.I SEPARATOR
+and framed by
+.I PREFIX
+and
+.I SUFFIX,
+followed by a newline.
+.PP
+Only words whose length is between
+.I MIN_LEN
+and
+.I MAX_LEN
+characters are considered; when
+.I ONLY_ALPHA
+is set, words containing anything but alphabetic characters are rejected.
+.I CASE_MODE
+controls whether words are lowercased, uppercased, or kept as read.
+.PP
+Words are selected with a single pass of reservoir sampling, so memory use is
+constant regardless of wordlist size and every valid word is equally likely to
+appear.
+.I /dev/urandom
+is used as the source of randomness.
+.PP
+Without an argument, the wordlist named by
+.I WORDLIST
+in
+.IR config.h
+is used.  The argument
+.B \-
+reads words from standard input.
+.SH OPTIONS
+.TP
+.I wordlist
+read words from this file instead of the default.
+.TP
+.B \-
+read words from standard input.
+.SH CONFIGURATION
+The behaviour of
+.B rwp
+is configured at compile time by editing
+.IR config.h :
+.TP
+.B WORDLIST
+default wordlist path.
+.TP
+.B MIN_LEN ", " MAX_LEN
+accepted word length range.
+.TP
+.B ONLY_ALPHA
+1 to accept only alphabetic words, 0 to accept any word.
+.TP
+.B COUNT
+number of words in the passphrase.
+.TP
+.B SEPARATOR
+string printed between words.
+.TP
+.B CASE_MODE
+CASE_KEEP, CASE_LOWER or CASE_UPPER.
+.TP
+.B PREFIX ", " SUFFIX
+strings printed before the first and after the last word.
+.SH EXIT STATUS
+.B rwp
+exits 0 on success and 1 on error, including "not enough words in list".
+.SH SEE ALSO
+.BR sws (1),
+.BR swc (1)

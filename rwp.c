@@ -57,7 +57,7 @@ usage(void)
         exit(EXIT_FAILURE);
 }
 
-/* Read sizeof(size_t) bytes to avoid breaking on massive wordlists */
+/* Draw the full size_t width so rejection sampling stays unbiased for any n */
 static size_t
 random_size_t(void)
 {
@@ -69,7 +69,7 @@ random_size_t(void)
         return n;
 }
 
-/* Flawless unbiased rejection sampling, now fully 64-bit safe */
+/* Reject until r is below the largest multiple of n that fits in size_t */
 static size_t
 random_below(size_t n)
 {
@@ -131,7 +131,7 @@ apply_case(char *word)
  * Returns the number of valid words seen.
  */
 static size_t
-fill_slots(FILE *fp, char **slot)
+fill_reservoir(FILE *fp, char **reservoir)
 {
         char *line = NULL;
         size_t linesize = 0;
@@ -139,8 +139,12 @@ fill_slots(FILE *fp, char **slot)
 
         while (getline(&line, &linesize, fp) != -1) {
                 size_t j;
+                size_t nl;
 
-                line[strcspn(line, "\n")] = '\0';
+                nl = strcspn(line, "\n");
+                line[nl] = '\0';
+                if (nl > 0 && line[nl - 1] == '\r')
+                        line[nl - 1] = '\0';
 
                 if (!valid_word(line))
                         continue;
@@ -148,17 +152,20 @@ fill_slots(FILE *fp, char **slot)
                 apply_case(line);
 
                 if (nvalid < COUNT) {
-                        slot[nvalid] = estrdup(line);
+                        reservoir[nvalid] = estrdup(line);
                 } else {
                         j = random_below(nvalid + 1);
                         if (j < COUNT) {
-                                free(slot[j]);
-                                slot[j] = estrdup(line);
+                                free(reservoir[j]);
+                                reservoir[j] = estrdup(line);
                         }
                 }
 
                 nvalid++;
         }
+
+        if (ferror(fp))
+                die("read error on input");
 
         free(line);
 
@@ -169,7 +176,7 @@ int
 main(int argc, char *argv[])
 {
         FILE *fp;
-        char **slot;
+        char **reservoir;
         size_t nvalid;
         size_t i;
 
@@ -190,10 +197,10 @@ main(int argc, char *argv[])
         if (!urand)
                 die("cannot open /dev/urandom");
 
-        /* Safely allocate memory, die cleanly if the OS hates us */
-        slot = ecalloc(COUNT, sizeof(*slot));
+        /* Allocation failure is fatal; there is no recovery path */
+        reservoir = ecalloc(COUNT, sizeof(*reservoir));
 
-        nvalid = fill_slots(fp, slot);
+        nvalid = fill_reservoir(fp, reservoir);
 
         if (fp != stdin)
                 fclose(fp);
@@ -207,17 +214,19 @@ main(int argc, char *argv[])
                 if (i)
                         fputs(SEPARATOR, stdout);
 
-                fputs(slot[i], stdout);
+                fputs(reservoir[i], stdout);
         }
 
         fputs(SUFFIX, stdout);
         putchar('\n');
 
-        /* Valgrind will weep tears of joy */
-        for (i = 0; i < COUNT; i++)
-                free(slot[i]);
+        if (fflush(stdout) != 0 || ferror(stdout))
+                die("write error on stdout");
 
-        free(slot);
+        for (i = 0; i < COUNT; i++)
+                free(reservoir[i]);
+
+        free(reservoir);
         fclose(urand);
 
         return EXIT_SUCCESS;
