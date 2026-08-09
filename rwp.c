@@ -1,11 +1,4 @@
-/*
- * rwp - random word password generator
- * suckless / Unix / KISS
- *
- * Generates a passphrase of COUNT random words from a wordlist.
- * usage: rwp [wordlist|-]
- */
-
+/* See LICENSE for license details. */
 #define _POSIX_C_SOURCE 200809L
 
 #include <ctype.h>
