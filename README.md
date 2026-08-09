@@ -1,5 +1,5 @@
 rwp - random word password
---------------------------
+============================
 rwp reads a wordlist and prints COUNT random words joined by SEPARATOR,
 suitable for use as a password. It has no dependencies beyond libc and
 /dev/urandom.
