@@ -24,6 +24,8 @@ necessary as root):
 Running rwp
 -----------
     usage: rwp [wordlist|-]
+           rwp /path/to/wordlist
+           rwp
 
     wordlist    read words from this file (default: WORDLIST in config.h)
     -           read words from standard input
