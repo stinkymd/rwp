@@ -11,6 +11,8 @@ regardless of wordlist size. Compose freely with other tools:
 
     $ shuf /usr/share/dict/words | head -n 5000 | rwp -
 
+    $ rwp | xclip -selection clipboard
+
 
 Requirements
 ------------
@@ -46,8 +48,6 @@ Examples:
 
     $ rwp
     asap risk webs toga twat
-
-    $ rwp | xclip -selection clipboard
 
     $ rwp /usr/share/dict/words
     flaw pays nevi kelp fuck
