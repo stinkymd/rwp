@@ -1,4 +1,4 @@
-rwp - random words pass
+rwp - random word password
 ====================================
 rwp is a suckless-style, C99/POSIX program that reads a wordlist and prints
 a passphrase of `COUNT` random words joined by a separator, suitable for use
