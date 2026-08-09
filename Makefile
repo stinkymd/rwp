@@ -11,6 +11,9 @@ OBJ = $(SRC:.c=.o)
 
 all: $(TARGET)
 
+config.h: config.def.h
+	cp config.def.h $@
+
 $(TARGET): $(OBJ)
 	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $(OBJ)
 
