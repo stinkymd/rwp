@@ -110,7 +110,7 @@ apply_case(char *word)
 {
         unsigned char *p;
 
-        switch (CASE) {
+        switch (CASE_MODE) {
         case CASE_LOWER:
                 for (p = (unsigned char *)word; *p; p++)
                         *p = (unsigned char)tolower(*p);
@@ -125,40 +125,18 @@ apply_case(char *word)
         }
 }
 
-int
-main(int argc, char *argv[])
+/*
+ * Single-pass reservoir sampling: keeps COUNT words uniformly
+ * distributed without holding the whole wordlist in memory.
+ * Returns the number of valid words seen.
+ */
+static size_t
+fill_slots(FILE *fp, char **slot)
 {
-        FILE *fp;
         char *line = NULL;
         size_t linesize = 0;
-        char **slot;
         size_t nvalid = 0;
-        size_t i;
 
-        if (argc > 2)
-                usage();
-
-        if (argc == 2 && strcmp(argv[1], "-") == 0) {
-                fp = stdin;
-        } else {
-                const char *src = argc == 2 ? argv[1] : WORDLIST;
-
-                fp = fopen(src, "r");
-                if (!fp)
-                        die("cannot open %s", src);
-        }
-
-        urand = fopen("/dev/urandom", "rb");
-        if (!urand)
-                die("cannot open /dev/urandom");
-
-        /* Safely allocate memory, die cleanly if the OS hates us */
-        slot = ecalloc(COUNT, sizeof(*slot));
-
-        /*
-         * Single-pass reservoir sampling: keeps COUNT words uniformly
-         * distributed without holding the whole wordlist in memory.
-         */
         while (getline(&line, &linesize, fp) != -1) {
                 size_t j;
 
@@ -183,6 +161,39 @@ main(int argc, char *argv[])
         }
 
         free(line);
+
+        return nvalid;
+}
+
+int
+main(int argc, char *argv[])
+{
+        FILE *fp;
+        char **slot;
+        size_t nvalid;
+        size_t i;
+
+        if (argc > 2)
+                usage();
+
+        if (argc == 2 && strcmp(argv[1], "-") == 0) {
+                fp = stdin;
+        } else {
+                const char *src = argc == 2 ? argv[1] : WORDLIST;
+
+                fp = fopen(src, "r");
+                if (!fp)
+                        die("cannot open %s", src);
+        }
+
+        urand = fopen("/dev/urandom", "rb");
+        if (!urand)
+                die("cannot open /dev/urandom");
+
+        /* Safely allocate memory, die cleanly if the OS hates us */
+        slot = ecalloc(COUNT, sizeof(*slot));
+
+        nvalid = fill_slots(fp, slot);
 
         if (fp != stdin)
                 fclose(fp);
