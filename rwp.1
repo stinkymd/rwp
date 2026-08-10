@@ -50,7 +50,12 @@ read words from standard input.
 The behaviour of
 .B rwp
 is configured at compile time by editing
-.IR config.h :
+.IR config.h ,
+which is created by copying
+.I config.def.h
+if it does not exist.
+.I config.def.h
+holds the default settings:
 .TP
 .B WORDLIST
 default wordlist path.

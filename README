@@ -33,5 +33,5 @@ Running rwp
 
 Configuration
 -------------
-The configuration of rwp is done by creating a custom config.h
-and (re)compiling the source code.
+The configuration of rwp is done by editing config.h (created from
+config.def.h if it does not exist) and (re)compiling the source code.
